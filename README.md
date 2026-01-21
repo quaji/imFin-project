@@ -1,6 +1,6 @@
 python module
-> numpy
-> pygame
+1. numpy
+2. pygame
 
 /main.py
     実行部分
