@@ -25,6 +25,16 @@ class Camera:
                             [0, 0, - 1, -2*self.near],
                             [0, 0, -1, 0]])
         
+    def ViewMatrix(self):
+        f = (self.lookat - self.position)/np.linalg.norm(self.lookat - self.position)
+        s = np.cross(f, np.array([0,1,0]))
+        u = np.cross(s, f)
+        # カメラ座標系変換行列の作成
+        return np.array([[s[0], s[1], s[2], -np.dot(s, self.position)],
+                      [u[0], u[1], u[2], -np.dot(u, self.position)],    
+                      [-f[0], -f[1], -f[2], np.dot(f, self.position)],
+                      [0, 0, 0, 1]])
+
     # クォータニオン回転
     # 引数
     # axis:回転軸ベクトル
@@ -39,9 +49,10 @@ class Camera:
         # self.position = p_rot[1:4]
         
         
-    def FPS(self, obj_position, to):
-        return
-    
+    def FPS(self, obj_position, target_position):
+        self.position = obj_position
+        self.lookat = target_position
+        
     # キー入力処理
     # 引数
     # keys:キー入力情報

@@ -48,14 +48,7 @@ def main():
 
         buf.fill((0, 0, 0))  # 描画バッファを背景色(RGB)で塗りつぶす     
 
-        f = camera.lookat - camera.position/np.linalg.norm(camera.lookat - camera.position)
-        s = np.cross(f, np.array([0,1,0]))
-        u = np.cross(s, f)
-        # カメラ座標系変換行列の作成
-        V = np.array([[s[0], s[1], s[2], -np.dot(s, camera.position)],
-                      [u[0], u[1], u[2], -np.dot(u, camera.position)],    
-                      [-f[0], -f[1], -f[2], np.dot(f, camera.position)],
-                      [0, 0, 0, 1]])
+        V = camera.ViewMatrix()
 
         camera.print_info()
 
