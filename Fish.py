@@ -209,13 +209,24 @@ class Fish:
         print("Size:\t", self.size)
         print("Segment:\t", self.segment)
         print("Segments:\t", self.segments)
-        
+    
+    # 魚の死亡判定関数
+    # 引数
+    # position:判定対象の位置(4次元ベクトル)
+    # radius:判定対象の半径
     def death_judge(self, position:np.array,radius:float):
         if np.sqrt(np.pow(self.position[1]-position[1],2)+np.pow(self.position[3]-position[3],2)) < radius and self.position[2] < position[2]:
             return True
         else:
             return False
         
+    # 魚の影表示関数
+    # 引数
+    # buf:描画先バッファ
+    # V:ビュー変換行列
+    # PPM:射影変換行列
+    # scrcentr:画面中心座標
+    # scale:画面サイズの変換拡大率
     def display_shadow(self, buf, V, PPM, scrcentr, scale):
         if not self.display_mode:return
         inv_q = inverse_quaternion(self.quaternion)
