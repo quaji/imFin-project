@@ -20,3 +20,9 @@ python module
     チンアナゴ(敵オブジェクト)のオブジェクト
 /GameManager.py
     描画、更新などを行うオブジェクト
+
+
+環境は、uv で、pygame,numpyをaddしています。
+また、
+https://github.com/quaji/imFin-project
+からクローンしてもらえれば、簡単で良いのかなと。
