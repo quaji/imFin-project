@@ -5,11 +5,22 @@ from Camera import *
 from Frame import *
 from Fish import *
 from StringsBlock import *
+from ChineseEel import *
+from GameManager import GameManager
+#魚を泳がせてチンアナゴをよけるゲーム
+#現状はチンアナゴに触れるとゲームオーバーってだけですが、
+#得点システムとか、餌を食べて糞をするとか、対戦要素とかを入れるつもりでした。
+#操作方法はW:上、S:下、A:左、D:右、R:リセット、ESC:終了です。
+#スペースキーで加速ができますが、餌システムが未実装なのであまり意味はありません。
+#魚の向きは移動方向に合わせて自動で変わります。
+#
+
+
 
 # 定数の設定
-WIDTH,HEIGHT=500, 500                        # 画面の幅と高さ
+WIDTH,HEIGHT=1000, 1000                        # 画面の幅と高さ
 scrcentr=np.array([(WIDTH-1)/2, (HEIGHT-1)/2]) # 画面の中心の座標
-scale = (WIDTH-1)/2                            # ピクセル単位の座標に変換する際の拡大率
+scale = (WIDTH-1)/2                            # 画面サイズの座標に変換する際の拡大率
 fps = 60                                       # フレーム/秒
 dt = 1/fps                                     # 秒/フレーム
 
@@ -18,25 +29,14 @@ def main():
     pygame.init()
     
     control_que = []
-    # cameraの生成
-    camera = Camera(position=np.array([0.,0.4,0.]), lookat=np.array([0.,0.,1.]))
-    
-    # frameの生成
-    frame = Frame()
-    frame.set_position(np.array([0.,0.,1.]))
-    
-    fish = Fish(position=np.array([0.,0.3,1.]), velocity=np.array([0.001,0.,0.]),segment=10,color=(255,255,0),orientation=deg2quat(90, np.array([0.,1.,0.])))
-    
-    #文字列表示オブジェクトの生成
-    test_string = StringsBlock(strings="ABCDEFGHIJKLMNOPQRSTUVWXYZ", position=np.array([-0.95,-0.8]), font_size=0.025, color=(255,255,255))
-    
+    game_manager = GameManager()
     # 画面の生成
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     # 描画バッファの作成
     buf = pygame.Surface((WIDTH, HEIGHT))
 
     # タイトルバーの設定（表示する文字を指定）
-    pygame.display.set_caption("2D Square & Keyboard Operation Sample") 
+    pygame.display.set_caption("Fish Simulation") 
 
     clock = pygame.time.Clock()     # 時計作成
 
@@ -48,18 +48,7 @@ def main():
 
         buf.fill((0, 0, 0))  # 描画バッファを背景色(RGB)で塗りつぶす     
 
-        V = camera.ViewMatrix()
-
-        camera.print_info()
-
-        frame.display(buf, V, camera.PPM, scrcentr, scale)
-        fish.display(buf, V, camera.PPM, scrcentr, scale)
-        camera.input(pygame.key.get_pressed(), Key_vel, True)
-        test_string.display(buf, scrcentr, scale)
-        key = pygame.key.get_pressed()
-        fish.update(key_input=key, key_vel=Key_vel)
-        
-        # camera.FPS(fish.position[1:4]+fish.display_segments[0][1:4], fish.position[1:4]+fish.display_segments[0][1:4]*2)
+        game_manager.update(key_input=pygame.key.get_pressed(), key_vel=Key_vel, buf=buf, scrcentr=scrcentr, scale=scale)
         
         # 画像座標の左下を原点にするための上下反転処理
         flippedbuf = pygame.transform.flip(buf, 0, 1) # 画像全体の上下反転

@@ -32,7 +32,7 @@ class Frame:
     # V:ビュー変換行列
     # PPM:射影変換行列
     # scrcentr:画面中心座標
-    # scale:ピクセル単位への変換拡大率
+    # scale:画面サイズへの変換拡大率
     # color:フレームの色(RGB)
     def display(self, buf, V, PPM, scrcentr, scale, color = (255, 255, 255)):
         for edge in self.vertical_edges:
@@ -48,6 +48,22 @@ class Frame:
                 p2 = scale * p2 + scrcentr
                 pygame.draw.line(buf, color, p1, p2, 2)
         for edge in self.horizontal_edges:
+            p1 = mult_quaternion(mult_quaternion(self.orientation, edge[0]), inverse_quaternion(self.orientation)) + self.position
+            p2 = mult_quaternion(mult_quaternion(self.orientation, edge[1]), inverse_quaternion(self.orientation)) + self.position
+            p1 = PPM @ V @ np.concatenate([p1[1:4], [1.]])
+            p2 = PPM @ V @ np.concatenate([p2[1:4], [1.]])
+            line_points = solid2plane(p1, p2)
+            if line_points is not None:
+                p1 = line_points[0][0:2]/line_points[0][3]
+                p1 = scale * p1 + scrcentr
+                p2 = line_points[1][0:2]/line_points[1][3]
+                p2 = scale * p2 + scrcentr
+                pygame.draw.line(buf, color, p1, p2, 2)
+        tmp_edges = [[self.horizontal_edges[0][0],self.horizontal_edges[0][0]+np.array([0.,0.,1.,0.])],
+                    [self.horizontal_edges[0][1],self.horizontal_edges[0][1]+np.array([0.,0.,1.,0.])],
+                    [self.horizontal_edges[-1][0],self.horizontal_edges[-1][0]+np.array([0.,0.,1.,0.])],
+                    [self.horizontal_edges[-1][1],self.horizontal_edges[-1][1]+np.array([0.,0.,1.,0.])]]
+        for edge in tmp_edges:
             p1 = mult_quaternion(mult_quaternion(self.orientation, edge[0]), inverse_quaternion(self.orientation)) + self.position
             p2 = mult_quaternion(mult_quaternion(self.orientation, edge[1]), inverse_quaternion(self.orientation)) + self.position
             p1 = PPM @ V @ np.concatenate([p1[1:4], [1.]])

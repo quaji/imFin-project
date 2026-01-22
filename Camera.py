@@ -15,6 +15,7 @@ class Camera:
         self.right = right
         self.near = near
         self.setPPMatrix()
+        self.setViewMatrix()
         
 
 
@@ -24,16 +25,21 @@ class Camera:
                             [0, 2*self.near/(self.top - self.bottom), (self.top + self.bottom)/(self.top - self.bottom), 0],
                             [0, 0, - 1, -2*self.near],
                             [0, 0, -1, 0]])
-        
-    def ViewMatrix(self):
+    # view matrix 設定
+    def setViewMatrix(self,upper=np.array([0,1,0])):
         f = (self.lookat - self.position)/np.linalg.norm(self.lookat - self.position)
-        s = np.cross(f, np.array([0,1,0]))
+        s = np.cross(f, upper)/np.linalg.norm(np.cross(f, upper))
         u = np.cross(s, f)
         # カメラ座標系変換行列の作成
-        return np.array([[s[0], s[1], s[2], -np.dot(s, self.position)],
-                      [u[0], u[1], u[2], -np.dot(u, self.position)],    
-                      [-f[0], -f[1], -f[2], np.dot(f, self.position)],
-                      [0, 0, 0, 1]])
+        self.VM = np.array([[s[0], s[1], s[2], -np.dot(s, self.position)],
+                            [u[0], u[1], u[2], -np.dot(u, self.position)],    
+                            [-f[0], -f[1], -f[2], np.dot(f, self.position)],
+                            [0, 0, 0, 1]])
+    # get系メソッド
+    def ViewMatrix(self):
+        return self.VM
+    def PPMatrix(self):
+        return self.PPM
 
     # クォータニオン回転
     # 引数

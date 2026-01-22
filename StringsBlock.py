@@ -24,7 +24,7 @@ class StringsBlock:
     # 引数
     # buf:描画先バッファ
     # scrcentr:画面中心座標
-    # scale:ピクセル単位への変換拡大率
+    # scale:画面サイズへの変換拡大率
     def display(self, buf, scrcentr=np.array([0,0]), scale=1):
         for char in self.strings:
             self.print_char(buf, char=char, scrcentr=scrcentr, scale=scale)

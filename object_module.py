@@ -21,3 +21,19 @@ def solid2plane(p1:np.array, p2:np.array)->np.array:
         return np.array([inter, p2])
     else:
         return None
+    
+# x-z平面上の円を取得する関数
+# 引数
+# radius:円の半径
+# segment:円の分割数
+# 戻り値
+# 円周上の点のリスト[np.array([0.,x1,0.,z1]), np.array([0.,x2,0.,z2]), ...]
+def get_circle(radius, segment):
+    points = []
+    for i in range(segment):
+        theta = 2.0 * np.pi * i / segment
+        x = radius * np.cos(theta)
+        y = radius * np.sin(theta)
+        points.append(np.array([0., x, 0., y]))
+    return points
+    
