@@ -17,7 +17,7 @@ class Fish:
     # position:魚の中心位置(4次元ベクトル)
     # color:魚の色(RGB)
     # size:魚の大きさ
-    # segment:魚の分割数
+    # segment:魚の骨の分割数
     # segments:魚の各セグメント位置(4次元ベクトル)リスト
     # display_segments:表示用魚の各セグメント位置(4次元ベクトル)リスト
     def __init__(self, position = None, velocity = None, color = (0, 0, 255), size = 0.1, segment = 2, orientation = np.array([1., 0., 0., 0.])):
@@ -35,7 +35,7 @@ class Fish:
         self.set_decoration()
         self.display_mode = True
     
-    # さかなの形をデコレーションするメソッド 
+    # さかなの形を装飾するメソッド 
     def set_decoration(self):
         tmp = []
         for _ in range(self.segment):
@@ -64,7 +64,7 @@ class Fish:
     # 引数
     # buf:描画先バッファ
     # V:ビュー変換行列
-    # PPM:射影変換行列
+    # PPM:透視投影行列
     # scrcentr:画面中心座標
     # scale:画面サイズの変換拡大率
     def display(self, buf, V, PPM, scrcentr, scale):
@@ -90,7 +90,7 @@ class Fish:
     # 引数
     # buf:描画先バッファ
     # V:ビュー変換行列
-    # PPM:射影変換行列
+    # PPM:透視投影行列
     # scrcentr:画面中心座標
     # scale:画面サイズの変換拡大率
     def display_decoration(self, buf, V, PPM, scrcentr, scale):
@@ -129,7 +129,7 @@ class Fish:
     # 引数
     # buf:描画先バッファ
     # V:ビュー変換行列
-    # PPM:射影変換行列
+    # PPM:透視投影行列
     # scrcentr:画面中心座標
     # scale:画面サイズの変換拡大率
     # color:目印の色(RGB)
@@ -152,12 +152,26 @@ class Fish:
     # 引数
     # key_input:キーボード入力情報
     # key_vel:速度変化量
-    def update(self,key_input=None, key_vel=0.0):
+    def update(self,key_input=None, key_vel=0.0,dt=1.0):
         if key_input is not None and key_vel > 0.0:
-            self.input(key_input, key_vel)
+            self.input(key_input, key_vel, dt)
             
         v1 = mult_quaternion(mult_quaternion(self.quaternion, self.velocity), inverse_quaternion(self.quaternion))
-        self.position += v1
+        self.position += v1*dt
+        if self.segment >= 2:
+            temp = np.linalg.norm(self.velocity)
+            self.velocity = self.segments[0]-self.segments[-1]
+            self.velocity = self.velocity/np.linalg.norm(self.velocity)*temp
+    # 魚の状態更新関数
+    # 引数
+    # key_input:キーボード入力情報
+    # key_vel:速度変化量
+    def update2P(self,key_input=None, key_vel=0.0, dt=1.0):
+        if key_input is not None and key_vel > 0.0:
+            self.input2P(key_input, key_vel, dt)
+            
+        v1 = mult_quaternion(mult_quaternion(self.quaternion, self.velocity), inverse_quaternion(self.quaternion))
+        self.position += v1*dt
         if self.segment >= 2:
             temp = np.linalg.norm(self.velocity)
             self.velocity = self.segments[0]-self.segments[-1]
@@ -167,17 +181,17 @@ class Fish:
     # 引数
     #  key_input:キーボード入力情報
     # key_vel:速度変化量
-    def input(self, key_input, key_vel):
+    def input(self, key_input, key_vel, dt):
         leng = np.linalg.norm(self.segments[0]-self.segments[-1])
         # 加速減速の制御
         if key_input[pygame.K_SPACE]:
             if np.linalg.norm(self.velocity) < self.v_MAX:
-                self.velocity *= 1.05
+                self.velocity *= 1.05*dt
             else:
                 self.velocity = self.velocity/np.linalg.norm(self.velocity)*self.v_MAX
         else:
             if np.linalg.norm(self.velocity) > self.v_MIN:
-                self.velocity *= 0.95
+                self.velocity *= 0.95*dt
             else:
                 self.velocity = self.velocity/np.linalg.norm(self.velocity)*self.v_MIN            
             
@@ -200,6 +214,45 @@ class Fish:
         if not key_input[pygame.K_w] and not key_input[pygame.K_s] and not key_input[pygame.K_a] and not key_input[pygame.K_d]:
             for _ in range(self.segment):
                 self.display_segments[_] = self.segments[_]
+
+    # 魚の入力処理関数
+    # 引数
+    #  key_input:キーボード入力情報
+    # key_vel:速度変化量
+    def input2P(self, key_input, key_vel, dt):
+        leng = np.linalg.norm(self.segments[0]-self.segments[-1])
+        # 加速減速の制御
+        if key_input[pygame.K_RCTRL]:
+            if np.linalg.norm(self.velocity) < self.v_MAX:
+                self.velocity *= 1.05*dt
+            else:
+                self.velocity = self.velocity/np.linalg.norm(self.velocity)*self.v_MAX
+        else:
+            if np.linalg.norm(self.velocity) > self.v_MIN:
+                self.velocity *= 0.95*dt
+            else:
+                self.velocity = self.velocity/np.linalg.norm(self.velocity)*self.v_MIN            
+            
+        if key_input[pygame.K_UP]:
+            self.quaternion = mult_quaternion(self.quaternion, np.array([np.cos(key_vel/2), np.sin(key_vel/2), 0., 0.]))
+            for _ in range(self.segment):
+                self.display_segments[_] = self.segments[_] - np.array([0.,0.,key_vel*leng*(np.sin(_*np.pi/self.segment) - 0.5*0), 0.])*10
+        if key_input[pygame.K_DOWN]:
+            self.quaternion = mult_quaternion(self.quaternion, np.array([np.cos(-key_vel/2), np.sin(-key_vel/2), 0., 0.]))
+            for _ in range(self.segment):
+                self.display_segments[_] = self.segments[_] + np.array([0.,0.,key_vel*leng*(np.sin(_*np.pi/self.segment) - 0.5*0), 0.])*10
+        if key_input[pygame.K_LEFT]:
+            self.quaternion = mult_quaternion(self.quaternion, np.array([np.cos(-key_vel/2), 0., np.sin(-key_vel/2), 0.]))
+            for _ in range(self.segment):
+                self.display_segments[_] = self.segments[_] - np.array([0.,key_vel*leng*(np.sin(_*np.pi/self.segment) - 0.5*0), 0.,0.])*10
+        if key_input[pygame.K_RIGHT]:
+            self.quaternion = mult_quaternion(self.quaternion, np.array([np.cos(key_vel/2), 0., np.sin(key_vel/2), 0.]))
+            for _ in range(self.segment):
+                self.display_segments[_] = self.segments[_] + np.array([0.,key_vel*leng*(np.sin(_*np.pi/self.segment) - 0.5*0), 0.,0.])*10
+        if not key_input[pygame.K_UP] and not key_input[pygame.K_DOWN] and not key_input[pygame.K_LEFT] and not key_input[pygame.K_RIGHT]:
+            for _ in range(self.segment):
+                self.display_segments[_] = self.segments[_]
+
 
     # 魚の情報表示関数
     def print_info(self):
@@ -224,7 +277,7 @@ class Fish:
     # 引数
     # buf:描画先バッファ
     # V:ビュー変換行列
-    # PPM:射影変換行列
+    # PPM:透視投影行列
     # scrcentr:画面中心座標
     # scale:画面サイズの変換拡大率
     def display_shadow(self, buf, V, PPM, scrcentr, scale):

@@ -10,13 +10,15 @@ import random, time
 
 class GameManager:
     def __init__(self):
+        self.dt = 1.0
         self.size = 1.0
         self.camera = Camera(position=np.array([0.,0.4,0.]), lookat=np.array([0.,0.,1.]))
         self.frame = Frame(position=np.array([0.,0.,1.]), vertical_segment=30, horizontal_segment=30, vertical_size=self.size, horizontal_size=self.size)
-        self.fish = Fish(position=np.array([0.,0.3,1.]), velocity=np.array([0.001,0.,0.]),segment=10,color=(255,255,0),orientation=deg2quat(90, np.array([0.,1.,0.])))
+        self.fish = Fish(position=np.array([0.5,0.3,1.]), velocity=np.array([0.001,0.,0.]),segment=10,color=(255,255,0),orientation=deg2quat(90, np.array([0.,1.,0.])))
+        self.fish2 = Fish(position=np.array([0.,0.3,1.]), velocity=np.array([0.001,0.,0.]),segment=10,color=(0,255,0),orientation=deg2quat(90, np.array([0.,1.,0.])))
+        
         self.eels = []
         self.strings = []
-        self.strings.append(StringsBlock(strings="Test mode", position=np.array([-0.95,-0.8]), font_size=0.05, color=(255,255,255)))
         self.iter_count:int = 100
         self.flag = False
         
@@ -45,21 +47,25 @@ class GameManager:
             self.iter_count = 200
             
         key = pygame.key.get_pressed()
-        self.fish.update(key_input=key, key_vel=key_vel)
+        self.fish.update(key_input=key, key_vel=key_vel, dt=self.dt)
+        self.fish2.update2P(key_input=key, key_vel=key_vel, dt=self.dt)
         for eel in self.eels:
-            f = eel.update()
+            f = eel.update(dt=self.dt)
             if f:
                 del eel
                 
         for eel in self.eels:
             self.flag = self.flag or self.fish.death_judge(eel.get_position(), eel.get_radius())
-
+            self.flag = self.flag or self.fish2.death_judge(eel.get_position(), eel.get_radius())
         if self.flag:
             self.springs = []
-            self.strings.append(StringsBlock(strings="Game Over", position=np.array([-0.4,0.05]), font_size=0.1, color=(0,105,0)))
+            self.strings.append(StringsBlock(strings="Game Over", position=np.array([-0.4,0.05]), font_size=0.1, color=(0,255,0)))
+            self.strings.append(StringsBlock(strings="Game Over", position=np.array([-0.4+0.01,0.05-0.01/2]), font_size=0.1, color=(0,255,0)))
+            self.strings.append(StringsBlock(strings="Game Over", position=np.array([-0.4+0.02,0.05-0.02/2]), font_size=0.1, color=(0,255,0)))
         else:
             self.frame.display(buf, VM, PPM, scrcentr, scale)
             self.fish.display(buf, VM, PPM, scrcentr, scale)
+            self.fish2.display(buf, VM, PPM, scrcentr, scale)
             for eel in self.eels:
                 eel.display(buf, VM, PPM, scrcentr, scale)
         for string in self.strings:

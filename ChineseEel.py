@@ -99,8 +99,8 @@ class ChineseEel:
                     p2 = scale * p2 + scrcentr
                     pygame.draw.line(buf, self.color, p1, p2, 2)
             
-    def update(self):
-        self.position[2] += self.velocity
+    def update(self, dt):
+        self.position[2] += self.velocity*dt
         if self.position[2] > self.length:
             self.velocity *= -1
         if self.position[2] < -1e-3:

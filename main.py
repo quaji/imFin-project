@@ -29,7 +29,6 @@ def main():
     # Pygameの初期化
     pygame.init()
     
-    control_que = []
     game_manager = GameManager()
     # 画面の生成
     screen = pygame.display.set_mode((WIDTH, HEIGHT))

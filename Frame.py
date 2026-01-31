@@ -30,7 +30,7 @@ class Frame:
     # 引数
     # buf:描画先バッファ
     # V:ビュー変換行列
-    # PPM:射影変換行列
+    # PPM:透視投影行列
     # scrcentr:画面中心座標
     # scale:画面サイズへの変換拡大率
     # color:フレームの色(RGB)
